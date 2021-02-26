@@ -1,5 +1,5 @@
 import numpy as np
-import layer
+import layer as l
 import loss
 import activations
 import math
@@ -8,22 +8,28 @@ from progress.bar import IncrementalBar
 
 class Model():
     
-    def __init__(self, cfg):
+    def __init__(self, cfg, input_shape):
         self.layers = list(())
         self.learning_rate = cfg["lr"]
         self.loss_function_name = cfg["loss_fun"]
         self.loss_fun = loss.get_loss_function(cfg["loss_fun"])
         self.loss_derivative = loss.get_loss_derivative(cfg["loss_fun"])
-        self.penalty_factor = cfg["penalty_factor"]
-        self.penalty_function = loss.get_penalty_function(cfg["penalization"])
-        self.penalty_function_name = cfg["penalization"]
+        self.input_shape = input_shape
+        #self.penalty_factor = cfg["penalty_factor"]
+        #self.penalty_function = loss.get_penalty_function(cfg["penalization"])
+        #self.penalty_function_name = cfg["penalization"]
 
-    def add_layer(self,  input_size, output_size, weight_init_range, activation_function):
-        self.layers.append(layer.FC_layer(input_size, output_size, weight_init_range, activation_function))
+    def add_layer(self, layer, input_size):
+        if layer["type"] == "FC":
+            self.layers.append(l.FC_layer(input_size, layer["size"], layer["weights_start"], layer["activation"]))
+            output_size =  layer["size"]
+        elif  layer["type"] == "conv2D":
+            self.layers.append(l.conv2D(input_size,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"]))
+            output_size = layer["number_kernels"]
         return output_size
 
     def add_softmax(self):
-        self.layers.append(layer.softmax(self.layers[-1].shape[1]))
+        self.layers.append(l.softmax(self.layers[-1].shape[1]))
 
     def train(self, x_train, y_train, x_validate, y_validate, epochs, batch_size):
         bar = IncrementalBar('Training epoch', max=epochs)
@@ -113,13 +119,13 @@ class Model():
 
 
     def __str__(self):
-        s = "\n***  Model Architecture *** \nInput Layer of size = " + str(self.layers[0].shape[0])
+        s = "\n***  Model Architecture *** \nInput Layer of size = " + str(self.input_shape)
         for layer in self.layers:
             s = s + "\n" + str(layer)
         s = s + "\nLearning rate : " + str(self.learning_rate)
         s = s + "\nLoss function : " + str(self.loss_function_name)
-        s = s + "\nWeight regularization : " + str(self.penalty_function_name)
-        if self.penalty_function_name != "None":
-            s = s + "\nWeight regularization factor: " + str(self.penalty_factor)
+        #s = s + "\nWeight regularization : " + str(self.penalty_function_name)
+        #if self.penalty_function_name != "None":
+        #    s = s + "\nWeight regularization factor: " + str(self.penalty_factor)
         s = s + "\n" + "**************************"
         return s

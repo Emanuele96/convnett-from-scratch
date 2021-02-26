@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 class Data_Generator():
 
-    def __init__(self, n_size, categories, number_of_categories, pictures_per_category, train_val_test_percent, centered_percent, noise_factor, soft_start):
+    def __init__(self, n_size, categories, number_of_categories, pictures_per_category, train_val_test_percent, centered_percent, noise_factor, soft_start, flatten):
         random.seed(42)
         np.random.seed(42)
         self.n_size = n_size
@@ -24,30 +24,35 @@ class Data_Generator():
         self.test_size = math.ceil(train_val_test_percent[2] * self.total_images)
         self.noise_factor = noise_factor/2
         self.soft_start = soft_start
+        self.flatten = flatten
         # Get an array of degrees for the circle calculation, size 3 times of picture size for scale(enough point to look nice, in relation to size)
         self.theta = np.linspace(0, 2 * np.pi, self.n_size**2)
 
     def generate_dataset(self):
         #shape of images and labels to match (tot, 1, n*n) and (tot, 1, cat), so that array of row vectors, to be fed in the network
-        images = np.zeros(shape=(self.total_images, 1, self.n_size* self.n_size))
+        if self.flatten:
+            pic_shape = (self.total_images, 1, self.n_size* self.n_size)
+        else:
+            pic_shape = (self.total_images, 1, self.n_size, self.n_size)
+        images = np.zeros(shape= pic_shape)
         labels = np.zeros(shape=(self.total_images, 1,  self.number_of_categories))
         counter = 0
         for category in self.categories:
             for picture in range(self.pictures_per_category):
                 if (category == self.categories[0]).all():
-                    images[counter] += self.apply_noise(self.generate_random_horizontal_bar_image(True), self.generate_noise(True))
+                    images[counter] += self.apply_noise(self.generate_random_horizontal_bar_image(self.flatten), self.generate_noise(self.flatten))
                     labels[counter] = self.assign_label(category)
                     counter += 1
                 elif (category == self.categories[1]).all():
-                    images[counter] +=self.apply_noise(self.generate_random_vertical_bar_image(True), self.generate_noise(True))
+                    images[counter] +=self.apply_noise(self.generate_random_vertical_bar_image(self.flatten), self.generate_noise(self.flatten))
                     labels[counter] = self.assign_label(category)
                     counter += 1
                 elif (category == self.categories[2]).all():
-                    images[counter] += self.apply_noise(self.generate_random_circle_image(True), self.generate_noise(True))
+                    images[counter] += self.apply_noise(self.generate_random_circle_image(self.flatten), self.generate_noise(self.flatten))
                     labels[counter] = self.assign_label(category)
                     counter += 1
                 elif (category == self.categories[3]).all:
-                    images[counter] += self.apply_noise(self.generate_random_rectangle_image(True), self.generate_noise(True))
+                    images[counter] += self.apply_noise(self.generate_random_rectangle_image(self.flatten), self.generate_noise(self.flatten))
                     labels[counter] = self.assign_label(category)
                     counter += 1
         #Generate a numpy array of evenly spaced indexes, then shuffle

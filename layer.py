@@ -78,6 +78,30 @@ class FC_layer():
     def __str__(self):
         return "FC Layer type size = " + str(self.weights.shape) + " with activation = " + self.activation_name
 
+class conv2D():
+    def __init__(self, input_size, n_kernels, kernel_shape,  strides, modes, weight_init_range, activation):
+        self.type = "conv2D"
+        self.activation_name = activation
+        self.shape = (n_kernels, input_size, kernel_shape[0], kernel_shape[1])
+        self.activation = activations.get_activation_function(activation)
+        self.d_activation = activations.get_activation_derivative(activation)
+        self.strides = strides
+        self.modes = modes
+        #self.input = None
+        #self.output = None
+        self.weights = np.random.uniform(low=weight_init_range[0], high= weight_init_range[1], size= self.shape)
+        #self.bias = np.zeros((1,output_size))
+        self.weights_grads = np.zeros(self.weights.shape)
+
+    def forward():
+        return -1
+    
+    def backward():
+        return -1
+    
+    def __str__(self):
+        return "Conv 2D Layer type with "+  str(self.shape[0]) +" kernels of shape = " + str(self.shape[1:]) +" strides= " + str(self.strides) + " modes= " + str(self.modes) +" with activation = " + self.activation_name
+
 class softmax():
     def __init__(self, size):
         self.size = size

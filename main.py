@@ -32,7 +32,7 @@ parser.add_argument('--config', default="cfg.json", type=str, help="Select confi
 args = parser.parse_args()
 cfg = read_config_from_json(args.config)
 # Generate dataset
-data_generator = data_generator.Data_Generator(cfg["n_size"], cfg["categories"], cfg["categories"], cfg["pic_per_categories"], cfg["train_val_test_percent"], cfg["center_image_prob"], cfg["noise_percent"], cfg["soft_start"])
+data_generator = data_generator.Data_Generator(cfg["n_size"], cfg["categories"], cfg["categories"], cfg["pic_per_categories"], cfg["train_val_test_percent"], cfg["center_image_prob"], cfg["noise_percent"], cfg["soft_start"], False)
 x_train, y_train, x_validate, y_validate, x_test, y_test = data_generator.generate_dataset()
 # Run Program
 if __name__ == "__main__":
@@ -43,13 +43,11 @@ if __name__ == "__main__":
         anim = animation.FuncAnimation(fig, animate, interval  = cfg["animation_speed"])
         plt.show()
     # Construct the model
-    m1 = model.Model(cfg)
-    input_size = cfg["n_size"]**2
+    m1 = model.Model(cfg, input_shape = x_train[0].shape)
+    input_size = x_train[0].shape[0]
     # Add hidden layers
-    for i in range(len(cfg["hidden_layers_nodes"])):
-        input_size = m1.add_layer(input_size, cfg["hidden_layers_nodes"][i], cfg["hidden_layers_weight_start"][i], cfg["hidden_layers_activations"][i])
-    # Add output layer
-    m1.add_layer(input_size, cfg["output_layer_nodes"], cfg["output_layer_weight_start"], cfg["output_layer_activation"])
+    for layer in cfg["layers"]:
+        input_size = m1.add_layer(layer, input_size)
     # Add Softmax if required
     if cfg["use_softmax"]:
         m1.add_softmax()  
