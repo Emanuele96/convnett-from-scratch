@@ -1,0 +1,32 @@
+{
+    "n_size": 16,
+    "categories": 4,
+    "pic_per_categories": 200,
+    "train_val_test_percent": [
+        0.7, 0.2, 0.1
+    ],
+    "center_image_prob": 0.5,
+    "noise_percent": 0.05,
+    "soft_start": true,
+    "show_pictures_on_start": true,
+    "animation_speed": 1000,
+    "train_on_start": true,
+    "hidden_layers_nodes": [
+    ],
+    "hidden_layers_activations": [
+    ],
+    "hidden_layers_weight_start": [
+    ],
+    "output_layer_nodes": 4,
+    "output_layer_activation": "sigmoid",
+    "output_layer_weight_start": [
+        -0.1, 0.1
+    ],
+    "use_softmax": true,
+    "lr": 0.05,
+    "loss_fun": "cross_entropy",
+    "penalization": "L2",
+    "penalty_factor":0.001,
+    "batch_size": 32,
+    "epochs": 300
+}
