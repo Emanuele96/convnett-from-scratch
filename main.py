@@ -44,10 +44,11 @@ if __name__ == "__main__":
         plt.show()
     # Construct the model
     m1 = model.Model(cfg, input_shape = x_train[0].shape)
-    input_size = x_train[0].shape[0]
+    input_shape = x_train[0].shape
+    input_nodes = None
     # Add hidden layers
     for layer in cfg["layers"]:
-        input_size = m1.add_layer(layer, input_size)
+        input_shape, input_nodes = m1.add_layer(layer, input_shape, input_nodes)
     # Add Softmax if required
     if cfg["use_softmax"]:
         m1.add_softmax()  

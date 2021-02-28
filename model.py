@@ -19,14 +19,17 @@ class Model():
         #self.penalty_function = loss.get_penalty_function(cfg["penalization"])
         #self.penalty_function_name = cfg["penalization"]
 
-    def add_layer(self, layer, input_size):
+    def add_layer(self, layer, input_shape, input_nodes):
+
         if layer["type"] == "FC":
-            self.layers.append(l.FC_layer(input_size, layer["size"], layer["weights_start"], layer["activation"]))
-            output_size =  layer["size"]
+            self.layers.append(l.FC_layer(input_nodes, layer["size"], layer["weights_start"], layer["activation"]))
+            output_nodes = layer["size"]
+            output_shape = None
         elif  layer["type"] == "conv2D":
-            self.layers.append(l.conv2D(input_size,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"]))
-            output_size = layer["number_kernels"]
-        return output_size
+            self.layers.append(l.conv2D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"]))
+            output_nodes = self.layers[-1].output_shape[1] * self.layers[-1].output_shape[2]
+            output_shape = self.layers[-1].output_shape
+        return output_shape, output_nodes
 
     def add_softmax(self):
         self.layers.append(l.softmax(self.layers[-1].shape[1]))
@@ -124,8 +127,5 @@ class Model():
             s = s + "\n" + str(layer)
         s = s + "\nLearning rate : " + str(self.learning_rate)
         s = s + "\nLoss function : " + str(self.loss_function_name)
-        #s = s + "\nWeight regularization : " + str(self.penalty_function_name)
-        #if self.penalty_function_name != "None":
-        #    s = s + "\nWeight regularization factor: " + str(self.penalty_factor)
         s = s + "\n" + "**************************"
         return s
