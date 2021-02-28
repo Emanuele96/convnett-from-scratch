@@ -19,14 +19,14 @@ class Model():
         #self.penalty_function = loss.get_penalty_function(cfg["penalization"])
         #self.penalty_function_name = cfg["penalization"]
 
-    def add_layer(self, layer, input_shape, input_nodes):
+    def add_layer(self, layer, input_shape, input_nodes, debug):
 
         if layer["type"] == "FC":
-            self.layers.append(l.FC_layer(input_nodes, layer["size"], layer["weights_start"], layer["activation"]))
+            self.layers.append(l.FC_layer(input_nodes, layer["size"], layer["weights_start"], layer["activation"], debug))
             output_nodes = layer["size"]
             output_shape = None
         elif  layer["type"] == "conv2D":
-            self.layers.append(l.conv2D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"]))
+            self.layers.append(l.conv2D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"], debug))
             output_nodes = self.layers[-1].output_shape[1] * self.layers[-1].output_shape[2]
             output_shape = self.layers[-1].output_shape
         return output_shape, output_nodes

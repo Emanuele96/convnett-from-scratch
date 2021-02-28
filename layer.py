@@ -3,7 +3,7 @@ import math
 import activations
 
 class FC_layer():
-    def __init__(self, input_size, output_size, weight_init_range, activation):
+    def __init__(self, input_size, output_size, weight_init_range, activation, debug):
         self.type = "FC"
         self.activation_name = activation
         self.shape = (input_size, output_size)
@@ -16,7 +16,7 @@ class FC_layer():
         self.bias = np.random.rand(1,output_size)
         self.weights_grads = np.zeros(self.weights.shape)
         self.bias_grads = np.zeros(self.bias.shape)
-        self.output_shape = (1, )
+        self.debug = debug
 
     def forward(self, input_activations):
         # Dot product of input with W plus bias. Cache, activate and return
@@ -80,7 +80,7 @@ class FC_layer():
         return "FC Layer type size = " + str(self.weights.shape) + " with activation = " + self.activation_name
 
 class conv2D():
-    def __init__(self, input_shape, n_kernels, kernel_shape,  strides, modes, weight_init_range, activation):
+    def __init__(self, input_shape, n_kernels, kernel_shape,  strides, modes, weight_init_range, activation, debug):
         self.type = "conv2D"
         self.input_shape = input_shape
         self.activation_name = activation
@@ -90,17 +90,16 @@ class conv2D():
         self.d_activation = activations.get_activation_derivative(activation)
         self.strides = strides
         self.modes = modes
-        #self.input = None
-        #self.output = None
         self.weights = np.random.uniform(low=weight_init_range[0], high= weight_init_range[1], size= self.kernel_shape)
-        #self.bias = np.zeros((1,output_size))
         self.weights_grads = np.zeros(self.weights.shape)
         self.p_x_start, self.p_x_stop, self.p_y_start, self.p_y_stop = self.calculate_padding()
         self.output_shape = self.calculate_output_shape()
+        self.cached_calculation = {}
+        self.debug = debug
 
         
         
-        print("###########################")
+        '''print("###########################")
         a = np.random.randint(1,4,(6,6))
         print(a)
         padded_a = self.apply_zero_padding(a)
@@ -108,10 +107,73 @@ class conv2D():
         print("kernel shape", (self.kernel_shape[2], self.kernel_shape[3]))
         print("input shape", a.shape)
         print("padded shape", padded_a.shape)
-        print("###########################")
+        print("###########################")'''
+        
 
-    def forward():
-        return -1
+    def forward(self, input_feature_maps):
+        #reset the cached calculations from the previous forward pass
+        self.cached_calculation = {}
+        output = np.zeros(self.output_shape)
+
+        for i in range(0, self.kernel_shape[0]):
+            #for each kernel stack
+            kernel_stack = self.weights[i]
+            for j in range(0, self.kernel_shape[1]):
+                #for each kernel in the kernel stack (or input channel)
+                kernel = kernel_stack[j]
+                array = input_feature_maps[j]
+                stride_x_pointer = 0
+                conv_counter = 1
+                if self.debug:
+                    print("**** NEW CONVOLUTION ****")
+                while(stride_x_pointer + kernel.shape[0] <= array.shape[0]):
+                    stride_y_pointer = 0
+                    #while the kernel does not go over the x-akse of the array
+                    while(stride_y_pointer + kernel.shape[1] <= array.shape[1]):
+                        #while the kernel does not go over the x-akse of the array
+                        #Get the snip of the array to apply convolution on
+                        array_snip = array[stride_x_pointer: stride_x_pointer + kernel.shape[0], stride_y_pointer: stride_y_pointer + kernel.shape[1]]
+                        #apply convolution and get the result 
+                        result = np.sum(np.multiply(array_snip, kernel))                            
+                        #update the output tensor
+                        conv_output_coordinate = (i, stride_x_pointer // self.strides[0], stride_y_pointer // self.strides[1])
+                        output[conv_output_coordinate] += result
+                        #cache all the results, touched weights and input for each kernel (output or Coordinates??)
+                        
+                        for row in range(kernel.shape[0]):
+                            for column in range(kernel.shape[1]):
+                                # Cache coordinate only: (weight, input) --> output
+                                #format: key ((kernel_stack_number, 2D_kernel_number, weight_x_pos, weight_y_pos), (input_channel, input_x_pos, input_y_pos)) ---> (feature_map_number, output_x_pos, output_y_pos)
+                                self.cached_calculation[((i, j, row, column), (j, row + stride_x_pointer , column + stride_y_pointer))] = conv_output_coordinate
+                                #Cache weight coordinate and input/output values
+                                #ALTERNATIVE
+                                # format: key ((kernel_stack_number, 2D_kernel_number, weight_x_pos, weight_y_pos), input_val) ---> output_val
+                                # self.cached_calculation[((i, j, row, column), array_snip[row, column]] = result
+                        if self.debug:
+                            print("convolution nr ", conv_counter )
+                            print("\narray_snip: \n", array_snip)
+                            print("\nkernel: \n", kernel)
+                            print("\nelementwise multiplication: \n", np.multiply(array_snip, kernel))
+                            print("\nresult: ", result)
+                        # Update the stride long the y-axis
+                        stride_y_pointer += self.strides[1]
+                        conv_counter+=1
+                    #update the stride long the x-axis
+                    stride_x_pointer += self.strides[0]
+                if self.debug:
+                    print("\n----REVIEW----\n")
+                    print("Total convolutions: ", conv_counter)
+                    print("\ninput_feature_map:\n ", array)
+                    print("\napplied kernel:\n ", kernel)
+                    print("\nconvolution result:\n ", output[i])
+                    print("***********************************")
+            
+
+
+
+
+
+                
     
     def backward():
         return -1

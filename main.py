@@ -48,7 +48,7 @@ if __name__ == "__main__":
     input_nodes = None
     # Add hidden layers
     for layer in cfg["layers"]:
-        input_shape, input_nodes = m1.add_layer(layer, input_shape, input_nodes)
+        input_shape, input_nodes = m1.add_layer(layer, input_shape, input_nodes, cfg["debug"])
     # Add Softmax if required
     if cfg["use_softmax"]:
         m1.add_softmax()  
