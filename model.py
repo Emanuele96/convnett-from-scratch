@@ -40,7 +40,6 @@ class Model():
         batches = math.ceil(samples/batch_size)
         losses = list(())
         validation_errors = list(())
-        bar.next()
         for i in range(epochs):
             # For each epoch --> go through the whole train set, one batch on the time
             for j in range(batches):
