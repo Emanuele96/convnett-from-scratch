@@ -40,6 +40,7 @@ class Model():
         batches = math.ceil(samples/batch_size)
         losses = list(())
         validation_errors = list(())
+        bar.next()
         for i in range(epochs):
             # For each epoch --> go through the whole train set, one batch on the time
             for j in range(batches):
@@ -62,7 +63,6 @@ class Model():
                         if layer.type == "FC":
                             network_output = np.ravel(network_output)
                         network_output = layer.forward(network_output)
-                    
                     # Calculate the loss
                     loss = self.loss_fun(self,y_train[sample_nr], network_output)
                     batch_loss = batch_loss + loss

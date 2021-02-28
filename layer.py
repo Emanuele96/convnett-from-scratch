@@ -95,6 +95,7 @@ class conv2D():
         self.p_x_start, self.p_x_stop, self.p_y_start, self.p_y_stop = self.calculate_padding()
         self.output_shape = self.calculate_output_shape()
         self.cached_calculation = {}
+        self.cached_output = None
         self.debug = debug
 
         
@@ -124,6 +125,8 @@ class conv2D():
                 array = input_feature_maps[j]
                 stride_x_pointer = 0
                 conv_counter = 1
+                #Apply padding
+                array = self.apply_zero_padding(array)
                 if self.debug:
                     print("**** NEW CONVOLUTION ****")
                 while(stride_x_pointer + kernel.shape[0] <= array.shape[0]):
@@ -139,7 +142,6 @@ class conv2D():
                         conv_output_coordinate = (i, stride_x_pointer // self.strides[0], stride_y_pointer // self.strides[1])
                         output[conv_output_coordinate] += result
                         #cache all the results, touched weights and input for each kernel (output or Coordinates??)
-                        
                         for row in range(kernel.shape[0]):
                             for column in range(kernel.shape[1]):
                                 # Cache coordinate only: (weight, input) --> output
@@ -148,7 +150,7 @@ class conv2D():
                                 #Cache weight coordinate and input/output values
                                 #ALTERNATIVE
                                 # format: key ((kernel_stack_number, 2D_kernel_number, weight_x_pos, weight_y_pos), input_val) ---> output_val
-                                # self.cached_calculation[((i, j, row, column), array_snip[row, column]] = result
+                                #self.cached_calculation[((i, j, row, column), array_snip[row, column])] = result
                         if self.debug:
                             print("convolution nr ", conv_counter )
                             print("\narray_snip: \n", array_snip)
@@ -160,6 +162,7 @@ class conv2D():
                         conv_counter+=1
                     #update the stride long the x-axis
                     stride_x_pointer += self.strides[0]
+                #End of convolution
                 if self.debug:
                     print("\n----REVIEW----\n")
                     print("Total convolutions: ", conv_counter)
@@ -167,7 +170,9 @@ class conv2D():
                     print("\napplied kernel:\n ", kernel)
                     print("\nconvolution result:\n ", output[i])
                     print("***********************************")
-
+        self.cached_output = output
+        #Apply activation
+        output = self.activation(self, output)
         return output
             
 
