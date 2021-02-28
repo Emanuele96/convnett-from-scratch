@@ -167,6 +167,8 @@ class conv2D():
                     print("\napplied kernel:\n ", kernel)
                     print("\nconvolution result:\n ", output[i])
                     print("***********************************")
+
+        return output
             
 
 

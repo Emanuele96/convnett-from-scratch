@@ -27,7 +27,7 @@ class Model():
             output_shape = None
         elif  layer["type"] == "conv2D":
             self.layers.append(l.conv2D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"], debug))
-            output_nodes = self.layers[-1].output_shape[1] * self.layers[-1].output_shape[2]
+            output_nodes = self.layers[-1].output_shape[0] * self.layers[-1].output_shape[1] * self.layers[-1].output_shape[2]
             output_shape = self.layers[-1].output_shape
         return output_shape, output_nodes
 
@@ -59,6 +59,8 @@ class Model():
                     network_output = x_train[sample_nr]
                     
                     for layer in self.layers:
+                        if layer.type == "FC":
+                            network_output = np.ravel(network_output)
                         network_output = layer.forward(network_output)
                     
                     # Calculate the loss
@@ -67,7 +69,7 @@ class Model():
                     # BACKWARD PASS : Get the loss and backpropagate throught the network
                     jacobian_L_Z = self.loss_derivative(self,y_train[sample_nr],  network_output)
 
-                    #Get the normalization penalty
+                    '''#Get the normalization penalty
                     if self.penalty_function_name != "None":
                         # Get all the weights of the network
                         network_weights = list(())
@@ -76,10 +78,13 @@ class Model():
                                 network_weights.append(layer.weights)
                         omega = self.penalty_function(self, network_weights)
                         # Add the penalty to the loss function
-                        jacobian_L_Z = jacobian_L_Z + self.penalty_factor*omega
-                        
+                        jacobian_L_Z = jacobian_L_Z + self.penalty_factor*omega'''
+
+
+                    #print("\nloss: ", loss)
+                    #print("\noutput: ", network_output)    
                     # backpropagate
-                    for layer in reversed(self.layers):
+                    '''for layer in reversed(self.layers):
                         if layer.type == "softmax":
                             jacobian_L_Z = layer.backward(jacobian_L_Z, network_output)
                         else:
@@ -88,7 +93,7 @@ class Model():
                 # At the end of each batch, update gradients
                 for layer in self.layers:
                     if layer.type == "FC":
-                        layer.update_gradients(self.learning_rate)
+                        layer.update_gradients(self.learning_rate)'''
                 # Append the loss of the batch and validate the batch
                 losses.append(batch_loss/batch_samples) 
             # end of an epoch
@@ -100,6 +105,8 @@ class Model():
     def predict(self, x):
         prediction = x
         for layer in self.layers:
+            if layer.type == "FC":
+                prediction = np.ravel(prediction)
             prediction = layer.forward(prediction)
         return prediction
     

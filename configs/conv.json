@@ -1,8 +1,8 @@
 {
-    "debug": true, 
-    "n_size": 6,
+    "debug": false, 
+    "n_size": 10,
     "categories": 4,
-    "pic_per_categories": 250,
+    "pic_per_categories": 50,
     "train_val_test_percent": [
         0.7, 0.2, 0.1
     ],
