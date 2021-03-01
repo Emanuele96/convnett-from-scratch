@@ -2,7 +2,7 @@
     "debug": false, 
     "n_size": 16,
     "categories": 4,
-    "pic_per_categories": 20,
+    "pic_per_categories": 25,
     "train_val_test_percent": [
         0.7, 0.2, 0.1
     ],
@@ -14,19 +14,19 @@
     "train_on_start": true,
     "layers": [{
         "type": "conv2D",
-        "number_kernels": 4,
-        "kernel_shape": [9,9],
-        "strides": [1,1],
-        "modes": ["same", "same"],
+        "number_kernels": 2,
+        "kernel_shape": [5,5],
+        "strides": [2,2],
+        "modes": ["valid", "valid"],
         "activation": "relu",
         "weights_start": [-0.1, 0.1]
     },
     {
         "type": "conv2D",
-        "number_kernels": 8,
+        "number_kernels": 4,
         "kernel_shape": [5,5],
         "strides": [1,1],
-        "modes": ["valid", "valid"],
+        "modes": ["same", "same"],
         "activation": "relu",
         "weights_start": [-0.1, 0.1]
     },

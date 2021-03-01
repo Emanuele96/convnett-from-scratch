@@ -115,7 +115,8 @@ class conv2D():
         #reset the cached calculations from the previous forward pass
         self.cached_calculation = {}
         output = np.zeros(self.output_shape)
-
+        #Apply padding
+        input_feature_maps = self.apply_zero_padding(input_feature_maps)
         for i in range(0, self.kernel_shape[0]):
             #for each kernel stack
             kernel_stack = self.weights[i]
@@ -125,14 +126,12 @@ class conv2D():
                 array = input_feature_maps[j]
                 stride_x_pointer = 0
                 conv_counter = 1
-                #Apply padding
-                array = self.apply_zero_padding(array)
                 if self.debug:
                     print("**** NEW CONVOLUTION ****")
-                while(stride_x_pointer + kernel.shape[0] <= array.shape[0]):
+                while(stride_x_pointer + kernel.shape[0] - 1 <= array.shape[0] - 1):
                     stride_y_pointer = 0
                     #while the kernel does not go over the x-akse of the array
-                    while(stride_y_pointer + kernel.shape[1] <= array.shape[1]):
+                    while(stride_y_pointer + kernel.shape[1] -1 <= array.shape[1] - 1):
                         #while the kernel does not go over the x-akse of the array
                         #Get the snip of the array to apply convolution on
                         array_snip = array[stride_x_pointer: stride_x_pointer + kernel.shape[0], stride_y_pointer: stride_y_pointer + kernel.shape[1]]
@@ -170,20 +169,56 @@ class conv2D():
                     print("\napplied kernel:\n ", kernel)
                     print("\nconvolution result:\n ", output[i])
                     print("***********************************")
+        #Cache input and output
         self.cached_output = output
+        self.cached_input = input_feature_maps
         #Apply activation
         output = self.activation(self, output)
         return output
-            
-
-
-
-
-
                 
     
-    def backward():
-        return -1
+    def backward(self, jacobian_L_Z):
+        #Reshape J_LZ from FC to Conv2D
+        jacobian_L_Z = jacobian_L_Z.reshape(self.output_shape)
+
+        #Calculate J_LW
+        jacobian_L_W = self.compute_gradients(jacobian_L_Z)
+        self.weights_grads += jacobian_L_W
+
+        #Calculate J_LX
+        jacobian_L_Y = self.compute_J_LY(jacobian_L_Z)
+
+        #Pass Jacobian L Y upstream
+        return jacobian_L_Y
+    
+    def update_gradients(self, learning_rate):
+        self.weights -= learning_rate * self.weights_grads
+        self.weights_grads = np.zeros(self.weights.shape)
+
+    def compute_gradients(self, jacobian_L_Z):
+        grads = np.zeros(self.weights.shape)
+        #Iterate through all the weights (4 dimension)
+        for i in range(self.weights.shape[0]):
+            for j in range(self.weights.shape[1]):
+                for k in range(self.weights.shape[2]):
+                    for l in range(self.weights.shape[3]):
+                        #cached_data = {k: v for k,v in self.cached_calculation.items() if k[0] == (i,j,k,l)}
+                        for key in self.cached_calculation.keys():
+                            if key[0] == (i,j,k,l):
+                                grads[(i,j,k,l)] += self.cached_input[key[1]] * jacobian_L_Z[self.cached_calculation[key]]
+        return grads
+
+    def compute_J_LY(self, jacobian_L_Z):
+        jacobian_L_Y = np.zeros(self.input_shape)
+        #Iterate through all the inputs (3 dimension)
+        for i in range(self.input_shape[0]):
+            for j in range(self.input_shape[1]):
+                for k in range(self.input_shape[2]):
+                        #cached_data = {k: v for k,v in self.cached_calculation.items() if k[0] == (i,j,k,l)}
+                        for key in self.cached_calculation.keys():
+                            if key[1] == (i,j,k):
+                                jacobian_L_Y[(i,j,k)] += self.weights[key[0]] * jacobian_L_Z[self.cached_calculation[key]]
+        return jacobian_L_Y
     
     def calculate_output_shape(self):
         width = math.floor((self.input_shape[1] - self.kernel_shape[2] + self.p_x_start + self.p_x_stop)/self.strides[0] + 1)
@@ -196,7 +231,6 @@ class conv2D():
         s = self.strides[0]
         f = self.kernel_shape[2]
         i = self.kernel_shape[2]
-        print("specs", (s,f,i))
         if self.modes[0] == "full":
         #Every pixel must experience every weight of the kernel
             p_x_start = f - 1
@@ -229,14 +263,18 @@ class conv2D():
 
         return p_x_start, p_x_stop, p_y_start, p_y_stop
     
-    def apply_zero_padding(self, array):
-    # Apply zero padding to an array according to the modes and kernel size
-        
-        #Create the background zero array
-        padded_array = np.zeros((array.shape[0] + self.p_x_start + self.p_x_stop, array.shape[1] + self.p_y_start + self.p_y_stop))
-        #Copy the array in the middle of the zero background
-        padded_array[self.p_x_start:array.shape[0]+ self.p_x_start, self.p_y_start:array.shape[1]+ self.p_y_start] = array 
-        return padded_array
+    def apply_zero_padding(self, input_feature_maps):
+    # Apply zero padding to the input feature maps according to the modes, strides and kernel size
+        padded_input_feature_maps = np.zeros((input_feature_maps.shape[0], input_feature_maps.shape[1] + self.p_x_start + self.p_x_stop, input_feature_maps.shape[2] + self.p_y_start + self.p_y_stop ))
+        for channel in range(input_feature_maps.shape[0]):
+            array = input_feature_maps[channel]
+            #Create the background zero array
+            padded_array = np.zeros((array.shape[0] + self.p_x_start + self.p_x_stop, array.shape[1] + self.p_y_start + self.p_y_stop))
+            #Copy the array in the middle of the zero background
+            padded_array[self.p_x_start:array.shape[0]+ self.p_x_start, self.p_y_start:array.shape[1]+ self.p_y_start] = array 
+            #Save the array
+            padded_input_feature_maps[channel] = padded_array
+        return padded_input_feature_maps
 
     def __str__(self):
         return "Conv 2D Layer type with "+  str(self.kernel_shape[0]) +" kernels of shape = " + str(self.kernel_shape[1:]) +"input/output of shape" + str(self.input_shape)+"/" + str(self.output_shape) + "  strides= s" + str(self.strides) + " modes= " + str(self.modes) +" with activation = " + self.activation_name

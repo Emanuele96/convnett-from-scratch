@@ -60,7 +60,7 @@ if __name__ == "__main__":
         time_validate = np.linspace(0, len(losses), num=cfg["epochs"])
         # test trained model on test data
         test_loss = m1.test(x_test, y_test)
-        test_losses = np.linspace(test_loss, test_loss, num = 300)
+        test_losses = np.linspace(test_loss, test_loss, num = 10)
         time_test = np.linspace(len(losses) + 1 , len(losses) + len(test_losses) + 1, num=len(test_losses))
         plt.plot(time, losses)
         plt.plot(time_validate, validation_errors)

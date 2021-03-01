@@ -3,8 +3,8 @@ import layer as l
 import loss
 import activations
 import math
-from progress.bar import IncrementalBar
-
+#from progress.bar import IncrementalBar
+from tqdm import tqdm
 
 class Model():
     
@@ -35,12 +35,13 @@ class Model():
         self.layers.append(l.softmax(self.layers[-1].shape[1]))
 
     def train(self, x_train, y_train, x_validate, y_validate, epochs, batch_size):
-        bar = IncrementalBar('Training epoch', max=epochs)
+        #bar = IncrementalBar('Training epoch', max=epochs)
         samples = len(x_train)
         batches = math.ceil(samples/batch_size)
         losses = list(())
         validation_errors = list(())
-        for i in range(epochs):
+        print("Training:")
+        for i in tqdm(range(epochs)):
             # For each epoch --> go through the whole train set, one batch on the time
             for j in range(batches):
                 # For each batch, go through "batch_size" samples 
@@ -60,7 +61,7 @@ class Model():
                     
                     for layer in self.layers:
                         if layer.type == "FC":
-                            network_output = np.ravel(network_output)
+                            network_output = network_output.reshape(1,-1)
                         network_output = layer.forward(network_output)
                     # Calculate the loss
                     loss = self.loss_fun(self,y_train[sample_nr], network_output)
@@ -83,7 +84,7 @@ class Model():
                     #print("\nloss: ", loss)
                     #print("\noutput: ", network_output)    
                     # backpropagate
-                    '''for layer in reversed(self.layers):
+                    for layer in reversed(self.layers):
                         if layer.type == "softmax":
                             jacobian_L_Z = layer.backward(jacobian_L_Z, network_output)
                         else:
@@ -91,21 +92,21 @@ class Model():
 
                 # At the end of each batch, update gradients
                 for layer in self.layers:
-                    if layer.type == "FC":
-                        layer.update_gradients(self.learning_rate)'''
+                    if layer.type == "FC" or layer.type == "conv2D":
+                        layer.update_gradients(self.learning_rate)
                 # Append the loss of the batch and validate the batch
                 losses.append(batch_loss/batch_samples) 
             # end of an epoch
             validation_errors.append(self.validate(x_validate, y_validate))
-            bar.next()
-        bar.finish()
+            #bar.next()
+        #bar.finish()
         return losses, validation_errors
 
     def predict(self, x):
         prediction = x
         for layer in self.layers:
             if layer.type == "FC":
-                prediction = np.ravel(prediction)
+                prediction = prediction.reshape(1,-1)
             prediction = layer.forward(prediction)
         return prediction
     
