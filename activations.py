@@ -6,6 +6,12 @@ def linear(self, x):
 def relu(self, x):
     return np.maximum(x, 0)
 
+def selu(self, x):
+    # with α=1.6732~, λ=1.0507
+    alpha = α=1.6732
+    delta = 1.0507
+    return delta * np.where(x > 0, x, alpha*np.exp(x) - alpha)
+
 def tanh(self,x):
     return np.tanh(x)
 
@@ -19,6 +25,12 @@ def linear_derivative(self, x):
 
 def relu_derivative(self, x):
     return np.where(x > 0, 1.0, 0.0)
+
+def selu_derivative(self, x):
+    # with α=1.6732~, λ=1.0507
+    alpha = α=1.6732
+    delta = 1.0507
+    return delta * np.where(x > 0, 1, alpha * np.exp(x)) 
 
 def tanh_derivative(self, x):
     return 1 - np.tanh(x)**2
@@ -35,6 +47,8 @@ def get_activation_function(name):
         return sigmoid
     elif name == "tanh":
         return tanh
+    elif name == "selu":
+        return selu
 
 def get_activation_derivative(name):
     if name == "linear":
@@ -45,6 +59,8 @@ def get_activation_derivative(name):
         return sigmoid_derivative
     elif name == "tanh":
         return tanh_derivative
+    elif name == "selu":
+        return selu_derivative
 
 def softmax(self, x):
     e_x = np.exp(x - np.max(x)) 

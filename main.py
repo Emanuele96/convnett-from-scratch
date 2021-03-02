@@ -26,6 +26,8 @@ def animate(i):
     bar.next()
     return im
 
+
+
 # Parse config file of choice
 parser = argparse.ArgumentParser("Deep Learning Project 1")
 parser.add_argument('--config', default="cfg.json", type=str, help="Select configuration file to load")
@@ -67,6 +69,9 @@ if __name__ == "__main__":
         plt.plot(time_test, test_losses)
         plt.legend(["train", "validate", "test"], loc ="upper right") 
         plt.show()
+    if cfg["visualize_kernels"]:
+        m1.visualize_kernels()
+        
 
     
 

@@ -5,6 +5,8 @@ import activations
 import math
 #from progress.bar import IncrementalBar
 from tqdm import tqdm
+import matplotlib.pyplot as plt
+
 
 class Model():
     
@@ -127,6 +129,44 @@ class Model():
             loss += self.calculate_loss(y_test[i], self.predict(x_test[i]))
         return loss/samples
 
+    def visualize_kernels(self):
+        for layer in self.layers:
+            if layer.type != "conv2D":
+                continue
+            print("#### Visualizing kernels Conv2D layer #####")
+            for i in range(layer.weights.shape[0]):
+                print("### Kernel stack nr. ", i, " ###")
+                for j in range(layer.weights.shape[1]):
+                    print("## Kernel nr. ", j, " ##")
+                    print(layer.weights[i][j])
+                    self.hinton(layer.weights[i][j])
+                    plt.show()
+            print("######################")
+
+    
+    def hinton(self, matrix, max_weight=None, ax=None):
+        """Draw Hinton diagram for visualizing a weight matrix."""
+        "From https://matplotlib.org/3.1.1/gallery/specialty_plots/hinton_demo.html"
+        ax = ax if ax is not None else plt.gca()
+
+        if not max_weight:
+            max_weight = 2 ** np.ceil(np.log(np.abs(matrix).max()) / np.log(2))
+
+        ax.patch.set_facecolor('gray')
+        ax.set_aspect('equal', 'box')
+        ax.xaxis.set_major_locator(plt.NullLocator())
+        ax.yaxis.set_major_locator(plt.NullLocator())
+
+        for (x, y), w in np.ndenumerate(matrix):
+            color = 'white' if w > 0 else 'black'
+            size = np.sqrt(np.abs(w) / max_weight)
+            rect = plt.Rectangle([x - size / 2, y - size / 2], size, size,
+                                    facecolor=color, edgecolor=color)
+            ax.add_patch(rect)
+
+        ax.autoscale_view()
+        ax.invert_yaxis()
+        
 
     def __str__(self):
         s = "\n***  Model Architecture *** \nInput Layer of size = " + str(self.input_shape)
