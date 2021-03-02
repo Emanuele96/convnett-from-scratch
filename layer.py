@@ -178,8 +178,9 @@ class conv2D():
                 
     
     def backward(self, jacobian_L_Z):
-        #Reshape J_LZ from FC to Conv2D
+        #Reshape J_LZ from FC to Conv2D and pass through activation layer
         jacobian_L_Z = jacobian_L_Z.reshape(self.output_shape)
+        jacobian_L_Z = self.d_activation(self, jacobian_L_Z)
 
         #Calculate J_LW
         jacobian_L_W = self.compute_gradients(jacobian_L_Z)
