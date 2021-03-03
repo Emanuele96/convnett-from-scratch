@@ -97,8 +97,9 @@ class conv2D():
         self.cached_calculation = {}
         self.cached_output = None
         self.debug = debug
-
-        
+        self.sparse_matrix = None
+        self.weights_index_sparse_matrix = None
+        self.sparse_matrix, self.weights_index_sparse_matrix = self.create_sparse_matrix()
         
         '''print("###########################")
         a = np.random.randint(1,4,(6,6))
@@ -110,6 +111,53 @@ class conv2D():
         print("padded shape", padded_a.shape)
         print("###########################")'''
         
+    def create_sparse_matrix(self):
+        #Create the sparse matrix linking the weights to the inputs for each convolation
+
+        #Create a fake input matrix and pad it
+        placeholder_input = np.full(self.input_shape, -1)
+        placeholder_input = self.apply_zero_padding(placeholder_input)
+
+        #Do a complete convolution on 1 channel with 1 kernel
+        #Take only 1 2D input
+        array = placeholder_input[0]
+        kernel = self.weights[0][0]
+        stride_x_pointer = 0
+        sparse_matrix = None
+        # dictionary containing all indexes of weight wij for each convolution
+        weight_pos_in_conv = {}
+        while(stride_x_pointer + kernel.shape[0] - 1 <= array.shape[0] - 1):
+                    stride_y_pointer = 0
+                    #while the kernel does not go over the x-akse of the array
+                    while(stride_y_pointer + kernel.shape[1] -1 <= array.shape[1] - 1):
+                        #while the kernel does not go over the x-akse of the array
+                        #save the weights location on the overlap of the input
+                        tmp = np.full(array.shape, -1, dtype=float)
+                        for i in range(kernel.shape[0]):
+                            for j in range(kernel.shape[1]):
+                                #on the overlap of the kernel and input for this part of the convolution, save the coordinate of the weighs 
+                                #       That touches it as a float x,y for eks. 1,1 
+                                tmp[i + stride_x_pointer][j + stride_y_pointer] = (i)  + ((j)/10)
+                                #cache the weight index to the dictionary 
+                                index_list = weight_pos_in_conv.setdefault((i,j), list(()))
+                                index_list.append(j+ stride_y_pointer + (i+ stride_x_pointer)*array.shape[0])
+                                weight_pos_in_conv[(i,j)] = index_list
+                        #Reshape the convolution and concatenate it (each row represent a convolution step)
+                        tmp = tmp.reshape(1,-1)
+                        if sparse_matrix is None:
+                            sparse_matrix = tmp
+                        else:
+                            sparse_matrix = np.concatenate((sparse_matrix, tmp), axis= 0)
+                        #update the stride long the y-axis
+                        stride_y_pointer += self.strides[1]
+                    #update the stride long the x-axis
+                    stride_x_pointer += self.strides[0]
+        if self.debug:
+            print("sparse matrix\n", sparse_matrix)
+            print("kernel matrix\n", kernel)
+            print("sparse matriz shape", sparse_matrix.shape)
+            print("Index array", weight_pos_in_conv)
+        return sparse_matrix, weight_pos_in_conv
 
     def forward(self, input_feature_maps):
         #reset the cached calculations from the previous forward pass
