@@ -1,6 +1,6 @@
 {
     "debug": false, 
-    "n_size": 10,
+    "n_size": 12,
     "categories": 4,
     "pic_per_categories": 25,
     "train_val_test_percent": [
@@ -16,15 +16,15 @@
         "type": "conv2D",
         "number_kernels": 2,
         "kernel_shape": [5,5],
-        "strides": [1,1],
-        "modes": ["same", "same"],
+        "strides": [2,2],
+        "modes": ["valid", "valid"],
         "activation": "relu",
         "weights_start": [-0.1, 0.1]
     },
     {
         "type": "conv2D",
         "number_kernels": 2,
-        "kernel_shape": [5,5],
+        "kernel_shape": [3,3],
         "strides": [1,1],
         "modes": ["valid", "valid"],
         "activation": "relu",
