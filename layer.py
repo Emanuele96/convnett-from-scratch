@@ -12,7 +12,6 @@ class FC_layer():
         self.input = None
         self.output = None
         self.weights = np.random.uniform(low=weight_init_range[0], high= weight_init_range[1], size=(input_size, output_size))
-        #self.bias = np.zeros((1,output_size))
         self.bias = np.random.rand(1,output_size)
         self.weights_grads = np.zeros(self.weights.shape)
         self.bias_grads = np.zeros(self.bias.shape)
@@ -22,10 +21,11 @@ class FC_layer():
         # Dot product of input with W plus bias. Cache, activate and return
         output = np.dot(input_activations, self.weights) + self.bias
         # Cache the weighted outputs and inputs
-        self.output = output
+        #self.output = output
         self.input = input_activations
         # Pass the output throug the activation function
         output = self.activation(self, output)
+        self.output = output
         return output
     
     def backward(self, jacobian_L_Z):
@@ -205,7 +205,12 @@ class conv2D():
     def backward(self, jacobian_L_Z):
         #Reshape J_LZ from FC to Conv2D and pass through activation layer
         jacobian_L_Z = jacobian_L_Z.reshape(self.output_shape)
-        jacobian_L_Z = self.d_activation(self, jacobian_L_Z)
+        #print("JLZ før relu\n", jacobian_L_Z)
+        #jacobian_L_Z = self.d_activation(self, jacobian_L_Z)
+        #print("cached out after activation\n", self.cached_output)
+        jacobian_L_Z = jacobian_L_Z * self.d_activation(self, self.cached_output)
+        #print("JLZ etter relu\n", jacobian_L_Z)
+        # J_L_Z * f'(cached_output)
 
         #Calculate J_LW
         jacobian_L_W = self.compute_gradients(jacobian_L_Z)
@@ -231,7 +236,7 @@ class conv2D():
                         #cached_data = {k: v for k,v in self.cached_calculation.items() if k[0] == (i,j,k,l)}
                         for key in self.cached_calculation.keys():
                             if key[0] == (k,l):
-                                grads[(i,j,k,l)] += self.cached_input[j][key[1]] * jacobian_L_Z[i][self.cached_calculation[key]]
+                                grads[(i,j,k,l)] += self.cached_input[j][key[1]] * jacobian_L_Z[i][self.cached_calculation[key]]# * self.d_activation(self.cached_output[i][self.cached_calculation[key]])#*f'(out)
         return grads
 
     def compute_J_LY(self, jacobian_L_Z):
@@ -243,7 +248,7 @@ class conv2D():
                         #cached_data = {k: v for k,v in self.cached_calculation.items() if k[0] == (i,j,k,l)}
                         for key in self.cached_calculation.keys():
                             if key[1] == (i,j,k):
-                                jacobian_L_Y[(i,j,k)] += self.weights[key[0]] * jacobian_L_Z[self.cached_calculation[key]]
+                                jacobian_L_Y[(i,j,k)] += self.weights[key[0]] * jacobian_L_Z[self.cached_calculation[key]]# * self.d_activation(self.cached_output[i][self.cached_calculation[key]])
         return jacobian_L_Y
     
     def calculate_output_shape(self):
