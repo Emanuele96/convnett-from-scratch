@@ -95,6 +95,7 @@ class conv2D():
         self.p_x_start, self.p_x_stop, self.p_y_start, self.p_y_stop = self.calculate_padding()
         self.output_shape = self.calculate_output_shape()
         self.cached_calculation = {}
+        self.cache_weights_input_output_triplet_locations()
         self.cached_output = None
         self.debug = debug
 
@@ -109,7 +110,31 @@ class conv2D():
         print("input shape", a.shape)
         print("padded shape", padded_a.shape)
         print("###########################")'''
-        
+
+    def cache_weights_input_output_triplet_locations(self):
+        placeholder_input = np.zeros(self.input_shape)
+        array = placeholder_input[0]
+        kernel = self.weights[0][0]
+        stride_x_pointer = 0
+        while(stride_x_pointer + kernel.shape[0] - 1 <= array.shape[0] - 1):
+            stride_y_pointer = 0
+            #while the kernel does not go over the x-akse of the array
+            while(stride_y_pointer + kernel.shape[1] -1 <= array.shape[1] - 1):
+                #while the kernel does not go over the x-akse of the array
+                #cache all  touched weights and input for each kernel (output or Coordinates??)
+                for row in range(kernel.shape[0]):
+                    for column in range(kernel.shape[1]):
+                        # Cache coordinate only: (weight, input) --> output
+                        #format: key ((weight_x_pos, weight_y_pos), (input_x_pos, input_y_pos)) ---> (output_x_pos, output_y_pos)
+                        conv_output_coordinate = (stride_x_pointer // self.strides[0], stride_y_pointer // self.strides[1])
+                        self.cached_calculation[((row, column), (row + stride_x_pointer , column + stride_y_pointer))] = conv_output_coordinate
+                        #Cache weight coordinate and input/output values
+                # Update the stride long the y-axis
+                stride_y_pointer += self.strides[1]
+            #update the stride long the x-axis
+            stride_x_pointer += self.strides[0]
+        #End of convolution
+            
 
     def forward(self, input_feature_maps):
         #reset the cached calculations from the previous forward pass
@@ -140,7 +165,7 @@ class conv2D():
                         #update the output tensor
                         conv_output_coordinate = (i, stride_x_pointer // self.strides[0], stride_y_pointer // self.strides[1])
                         output[conv_output_coordinate] += result
-                        #cache all the results, touched weights and input for each kernel (output or Coordinates??)
+                        '''#cache all the results, touched weights and input for each kernel (output or Coordinates??)
                         for row in range(kernel.shape[0]):
                             for column in range(kernel.shape[1]):
                                 # Cache coordinate only: (weight, input) --> output
@@ -149,7 +174,7 @@ class conv2D():
                                 #Cache weight coordinate and input/output values
                                 #ALTERNATIVE
                                 # format: key ((kernel_stack_number, 2D_kernel_number, weight_x_pos, weight_y_pos), input_val) ---> output_val
-                                #self.cached_calculation[((i, j, row, column), array_snip[row, column])] = result
+                                #self.cached_calculation[((i, j, row, column), array_snip[row, column])] = result'''
                         if self.debug:
                             print("convolution nr ", conv_counter )
                             print("\narray_snip: \n", array_snip)
@@ -205,8 +230,8 @@ class conv2D():
                     for l in range(self.weights.shape[3]):
                         #cached_data = {k: v for k,v in self.cached_calculation.items() if k[0] == (i,j,k,l)}
                         for key in self.cached_calculation.keys():
-                            if key[0] == (i,j,k,l):
-                                grads[(i,j,k,l)] += self.cached_input[key[1]] * jacobian_L_Z[self.cached_calculation[key]]
+                            if key[0] == (k,l):
+                                grads[(i,j,k,l)] += self.cached_input[j][key[1]] * jacobian_L_Z[i][self.cached_calculation[key]]
         return grads
 
     def compute_J_LY(self, jacobian_L_Z):

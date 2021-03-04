@@ -1,33 +1,33 @@
 {
     "debug": false, 
-    "n_size": 12,
+    "n_size": 20,
     "categories": 4,
-    "pic_per_categories": 25,
+    "pic_per_categories": 50,
     "train_val_test_percent": [
         0.7, 0.2, 0.1
     ],
     "center_image_prob": 0.5,
-    "noise_percent": 0.05,
+    "noise_percent": 0.01,
     "soft_start": false,
     "show_pictures_on_start": true,
     "animation_speed": 500,
     "train_on_start": true,
     "layers": [{
         "type": "conv2D",
-        "number_kernels": 2,
-        "kernel_shape": [5,5],
-        "strides": [2,2],
+        "number_kernels": 4,
+        "kernel_shape": [9,9],
+        "strides": [1,1],
         "modes": ["valid", "valid"],
-        "activation": "relu",
+        "activation": "selu",
         "weights_start": [-0.1, 0.1]
     },
     {
         "type": "conv2D",
-        "number_kernels": 2,
-        "kernel_shape": [3,3],
+        "number_kernels": 8,
+        "kernel_shape": [5,5],
         "strides": [1,1],
         "modes": ["valid", "valid"],
-        "activation": "relu",
+        "activation": "selu",
         "weights_start": [-0.1, 0.1]
     },
     {
@@ -46,6 +46,6 @@
     "lr": 0.035,
     "loss_fun": "cross_entropy",
     "batch_size": 6,
-    "epochs": 50,
+    "epochs": 100,
     "visualize_kernels": true
 }
