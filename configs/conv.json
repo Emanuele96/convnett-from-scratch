@@ -1,51 +1,45 @@
 {
     "debug": false, 
-    "n_size": 32,
+    "n_size": 16,
     "categories": 4,
-    "pic_per_categories": 200,
+    "pic_per_categories": 50,
     "train_val_test_percent": [
         0.7, 0.2, 0.1
     ],
-    "center_image_prob": 0.5,
-    "noise_percent": 0.01,
+    "center_image_prob": 0.1,
+    "noise_percent": 0,
     "soft_start": false,
     "show_pictures_on_start": false,
     "animation_speed": 500,
     "train_on_start": true,
     "layers": [{
         "type": "conv2D",
-        "number_kernels": 4,
-        "kernel_shape": [5,5],
-        "strides": [2,2],
+        "number_kernels": 2,
+        "kernel_shape": [3,3],
+        "strides": [3,3],
         "modes": ["valid", "valid"],
-        "activation": "selu",
+        "activation": "relu",
         "weights_start": [-0.1, 0.1]
     },
     {
         "type": "conv2D",
-        "number_kernels": 8,
-        "kernel_shape": [5,5],
-        "strides": [2,2],
+        "number_kernels": 4,
+        "kernel_shape": [3,3],
+        "strides": [1,1],
         "modes": ["valid", "valid"],
-        "activation": "selu",
-        "weights_start": [-0.1, 0.1]
-    },
-    {
-        "type": "FC",
-        "size": 20,
-        "activation": "tanh",
+        "activation": "relu",
         "weights_start": [-0.1, 0.1]
     },
     {
         "type": "FC",
         "size": 4,
-        "activation": "tanh",
+        "activation": "relu",
         "weights_start": [-0.1, 0.1]
     }],
     "use_softmax": true,
-    "lr": 0.035,
+    "lr": 0.05,
     "loss_fun": "cross_entropy",
-    "batch_size": 32,
-    "epochs": 100,
+    "batch_size": 16,
+    "epochs": 50,
     "visualize_kernels": true
 }
