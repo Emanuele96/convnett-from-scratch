@@ -263,7 +263,6 @@ class conv2D():
     def calculate_output_shape(self):
         width = math.floor((self.input_shape[1] - self.kernel_shape[2] + self.p_x_start + self.p_x_stop)/self.strides[0] + 1)
         height = math.floor((self.input_shape[2] - self.kernel_shape[3] + self.p_y_start + self.p_y_stop)/self.strides[1] + 1 )
-        print(width, height)
         return (self.kernel_shape[0], width, height)
 
     def calculate_padding(self):
@@ -324,8 +323,8 @@ class conv1D():
         self.type = "conv1D"
         self.input_shape = input_shape
         self.activation_name = activation
-        #Kernel stack shape for the layer (N, I, K_x, K_y)
-        self.kernel_shape = (n_kernels, input_shape[0], kernel_shape[0], kernel_shape[1])
+        #Kernel stack shape for the layer (N, I, K_x, K_y)'
+        self.kernel_shape = (n_kernels, input_shape[0], 1,  kernel_shape[0])
         self.activation = activations.get_activation_function(activation)
         self.d_activation = activations.get_activation_derivative(activation)
         self.stride = stride
@@ -363,7 +362,7 @@ class conv1D():
                 # Cache coordinate only: (weight, input) --> output
                 #format: key ((weight_x_pos), (input_x_pos)) ---> (output_x_pos)
                 conv_output_coordinate = (stride_x_pointer // self.stride[0])
-                self.cached_calculation[((row), (row + stride_x_pointer))] = conv_output_coordinate
+                self.cached_calculation[((column + stride_x_pointer))] = conv_output_coordinate
                 #Cache weight coordinate and input/output values
             #update the stride long the x-axis
             stride_x_pointer += self.stride[0]
@@ -459,35 +458,39 @@ class conv1D():
                                 grads[(i,j,k,l)] += self.cached_input[j][0][key[1]] * jacobian_L_Z[i][0][self.cached_calculation[key]]
         return grads
 
-    def compute_J_LY(self, jacobian_L_Z):
-        jacobian_L_Y = np.zeros(self.input_shape)
-        #Iterate through all the inputs (3 dimension)
-        for i in range(self.input_shape[0]):
-            for j in range(self.input_shape[1]):
-                #NB j is always 1 for conv1d
-                for k in range(self.input_shape[2]):
-                        #cached_data = {k: v for k,v in self.cached_calculation.items() if k[0] == (i,j,k,l)}
-                        for key in self.cached_calculation.keys():
-                            if key[1] == (i,j,k):
-                                jacobian_L_Y[(i,j,k)] += self.weights[key[0]] * jacobian_L_Z[self.cached_calculation[key]]# * self.d_activation(self.cached_output[i][self.cached_calculation[key]])
-        return jacobian_L_Y
+        def compute_J_LY(self, jacobian_L_Z):
+            jacobian_L_Y = np.zeros(self.input_shape)
+            #Iterate through all the inputs (3 dimension)
+            #iterate through all channels/kernel of a kernel stack
+            for i in range(self.input_shape[0]):
+                #iterate through x-akses of 2d input
+                for j in range(self.input_shape[1]):
+                    #iterate through y-axes of 2d input
+                    #NB only 1 in Conv1D
+                    for k in range(self.input_shape[2]):
+                            #cached_data = {k: v for k,v in self.cached_calculation.items() if k[0] == (i,j,k,l)}
+                            for key in self.cached_calculation.keys():
+                                if key[1] == (j,k):
+                                    #for each kernel-stack
+                                    for l in range(self.weights.shape[0]):
+                                        jacobian_L_Y[(i,j,k)] += self.weights[l][i][0][key[0]] * jacobian_L_Z[l][0][self.cached_calculation[key]]
+            return jacobian_L_Y
     
     def calculate_output_shape(self):
-        width = math.floor((self.input_shape[1] - self.kernel_shape[2] + self.p_x_start + self.p_x_stop)/self.strides[0] + 1)
-        height = math.floor((self.input_shape[2] - self.kernel_shape[3] + self.p_y_start + self.p_y_stop)/self.strides[1] + 1 )
-        print(width, height)
-        return (self.kernel_shape[0], width, height)
+        width = math.floor((self.input_shape[1] - self.kernel_shape[2] + self.p_x_start + self.p_x_stop)/self.stride[0] + 1)
+        return (self.kernel_shape[0], 1, width)
 
     def calculate_padding(self):
         #Calculate padding long the x axis
-        s = self.strides[0]
-        f = self.kernel_shape[2]
+        s = self.stride[0]
+        f = self.kernel_shape[3]
         i = self.kernel_shape[2]
-        if self.modes[0] == "full":
+        if self.mode[0] == "full":
         #Every pixel must experience every weight of the kernel
             p_x_start = f - 1
             p_x_stop = f - 1
-        elif self.modes[0] == "same":
+        elif self.mode[0] == "same":
+
         #Every pixel must experience the middle weight of the kernel
             p_x_start = math.floor((s*math.ceil(i/s)-i+f-s)/2)
             p_x_stop = math.ceil((s*math.ceil(i/s)-i+f-s)/2)
@@ -498,19 +501,22 @@ class conv1D():
     
     def apply_zero_padding(self, input_feature_maps):
     # Apply zero padding to the input feature maps according to the modes, strides and kernel size
-        padded_input_feature_maps = np.zeros((input_feature_maps.shape[0], input_feature_maps.shape[1] + self.p_x_start + self.p_x_stop, input_feature_maps.shape[2] + self.p_y_start + self.p_y_stop ))
+        padded_input_feature_maps = np.zeros((input_feature_maps.shape[0],1, input_feature_maps.shape[1] + self.p_x_start + self.p_x_stop))
         for channel in range(input_feature_maps.shape[0]):
             array = input_feature_maps[channel]
             #Create the background zero array
-            padded_array = np.zeros((array.shape[0] + self.p_x_start + self.p_x_stop, array.shape[1] + self.p_y_start + self.p_y_stop))
+            padded_array = np.zeros((1,array.shape[0] + self.p_x_start + self.p_x_stop))
             #Copy the array in the middle of the zero background
-            padded_array[self.p_x_start:array.shape[0]+ self.p_x_start, self.p_y_start:array.shape[1]+ self.p_y_start] = array 
+            padded_array[0, self.p_x_start:array.shape[0]+ self.p_x_start] = array 
             #Save the array
             padded_input_feature_maps[channel] = padded_array
+            print("array\n", array.shape)
+            print("padded array \n", padded_array.shape)
+            print("pad", (self.p_x_start, self.p_x_stop))
         return padded_input_feature_maps
 
     def __str__(self):
-        return "Conv 2D Layer type with "+  str(self.kernel_shape[0]) +" kernels of shape = " + str(self.kernel_shape[1:]) +"input/output of shape" + str(self.input_shape)+"/" + str(self.output_shape) + "  strides= s" + str(self.strides) + " modes= " + str(self.modes) +" with activation = " + self.activation_name
+        return "Conv 1D Layer type with "+  str(self.kernel_shape[0]) +" kernels of shape = " + str(self.kernel_shape[1:]) +"input/output of shape" + str(self.input_shape)+"/" + str(self.output_shape) + "  stride= s" + str(self.stride) + " mode= " + str(self.mode) +" with activation = " + self.activation_name
 
 class softmax():
     def __init__(self, size):

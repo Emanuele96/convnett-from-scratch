@@ -31,6 +31,10 @@ class Model():
             self.layers.append(l.conv2D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"], debug))
             output_nodes = self.layers[-1].output_shape[0] * self.layers[-1].output_shape[1] * self.layers[-1].output_shape[2]
             output_shape = self.layers[-1].output_shape
+        elif  layer["type"] == "conv1D":
+            self.layers.append(l.conv1D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"], debug))
+            output_nodes = self.layers[-1].output_shape[0] * self.layers[-1].output_shape[1] * self.layers[-1].output_shape[2]
+            output_shape = self.layers[-1].output_shape
         return output_shape, output_nodes
 
     def add_softmax(self):
