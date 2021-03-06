@@ -507,7 +507,7 @@ class conv1D():
         return padded_input_feature_maps
 
     def __str__(self):
-        return "Conv 1D Layer type with "+  str(self.kernel_shape[0]) +" kernels of shape = " + str(self.kernel_shape[1:]) +"input/output of shape" + str(self.input_shape)+"/" + str(self.output_shape) + "  stride= s" + str(self.stride) + " mode= " + str(self.mode) +" with activation = " + self.activation_name
+        return "Conv 1D Layer type with "+  str(self.kernel_shape[0]) +" kernels of shape = " + str(self.kernel_shape[1:]) +"input/output of shape" + str(self.input_shape)+"/" + str(self.output_shape) + "  stride= " + str(self.stride) + " mode= " + str(self.mode) +" with activation = " + self.activation_name
 
 class softmax():
     def __init__(self, size):

@@ -1,5 +1,5 @@
 {
-    "debug": false, 
+    "debug": true, 
     "n_size": 12,
     "categories": 4,
     "pic_per_categories": 50,
