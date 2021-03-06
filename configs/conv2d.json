@@ -1,8 +1,8 @@
 {
     "debug": false, 
-    "n_size": 16,
+    "n_size": 12,
     "categories": 4,
-    "pic_per_categories": 50,
+    "pic_per_categories": 150,
     "train_val_test_percent": [
         0.7, 0.2, 0.1
     ],
@@ -15,7 +15,7 @@
     "train_on_start": true,
     "layers": [{
         "type": "conv2D",
-        "number_kernels": 4,
+        "number_kernels": 2,
         "kernel_shape": [3,3],
         "strides": [3,3],
         "modes": ["valid", "valid"],
@@ -24,16 +24,10 @@
     },
     {
         "type": "conv2D",
-        "number_kernels": 8,
+        "number_kernels": 4,
         "kernel_shape": [3,3],
         "strides": [1,1],
         "modes": ["valid", "valid"],
-        "activation": "selu",
-        "weights_start": [-0.1, 0.1]
-    },
-    {
-        "type": "FC",
-        "size": 20,
         "activation": "selu",
         "weights_start": [-0.1, 0.1]
     },
@@ -44,9 +38,9 @@
         "weights_start": [-0.1, 0.1]
     }],
     "use_softmax": true,
-    "lr": 0.025,
+    "lr": 0.0095,
     "loss_fun": "cross_entropy",
     "batch_size": 32,
-    "epochs": 75,
+    "epochs": 50,
     "visualize_kernels": true
 }
