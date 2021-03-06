@@ -17,10 +17,7 @@ class Model():
         self.loss_fun = loss.get_loss_function(cfg["loss_fun"])
         self.loss_derivative = loss.get_loss_derivative(cfg["loss_fun"])
         self.input_shape = input_shape
-        #self.penalty_factor = cfg["penalty_factor"]
-        #self.penalty_function = loss.get_penalty_function(cfg["penalization"])
-        #self.penalty_function_name = cfg["penalization"]
-
+        
     def add_layer(self, layer, input_shape, input_nodes, debug):
 
         if layer["type"] == "FC":
@@ -28,10 +25,19 @@ class Model():
             output_nodes = layer["size"]
             output_shape = None
         elif  layer["type"] == "conv2D":
+            if len(input_shape) == 2:
+                tmp = np.zeros(input_shape)
+                print("tmp", tmp.shape)
+                tmp = np.reshape(tmp, (input_shape[0], math.ceil(math.sqrt(input_shape[1])),-1))
+                input_shape = tmp.shape
             self.layers.append(l.conv2D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"], debug))
             output_nodes = self.layers[-1].output_shape[0] * self.layers[-1].output_shape[1] * self.layers[-1].output_shape[2]
             output_shape = self.layers[-1].output_shape
         elif  layer["type"] == "conv1D":
+            if len(input_shape) == 3:
+                tmp = np.zeros(input_shape)
+                tmp = tmp.reshape(input_shape[0], -1)
+                input_shape = tmp.shape
             self.layers.append(l.conv1D(input_shape,  layer["number_kernels"], layer["kernel_shape"], layer["strides"], layer["modes"], layer["weights_start"], layer["activation"], debug))
             output_nodes = self.layers[-1].output_shape[0] * self.layers[-1].output_shape[1]
             output_shape = self.layers[-1].output_shape
@@ -68,6 +74,10 @@ class Model():
                     for layer in self.layers:
                         if layer.type == "FC":
                             network_output = network_output.reshape(1,-1)
+                        elif layer.type == "conv1D" and len(network_output.shape) == 3:
+                            network_output = network_output.reshape(network_output.shape[0], -1)
+                        elif layer.type == "conv2D" and len(network_output.shape) == 2:
+                            network_output = network_output.reshape(network_output.shape[0], math.ceil(math.sqrt(network_output.shape[1])),-1)
                         network_output = layer.forward(network_output)
                     # Calculate the loss
                     loss = self.loss_fun(self,y_train[sample_nr], network_output)
@@ -75,20 +85,6 @@ class Model():
                     # BACKWARD PASS : Get the loss and backpropagate throught the network
                     jacobian_L_Z = self.loss_derivative(self,y_train[sample_nr],  network_output)
 
-                    '''#Get the normalization penalty
-                    if self.penalty_function_name != "None":
-                        # Get all the weights of the network
-                        network_weights = list(())
-                        for layer in self.layers:
-                            if layer.type == "FC":
-                                network_weights.append(layer.weights)
-                        omega = self.penalty_function(self, network_weights)
-                        # Add the penalty to the loss function
-                        jacobian_L_Z = jacobian_L_Z + self.penalty_factor*omega'''
-
-
-                    #print("\nloss: ", loss)
-                    #print("\noutput: ", network_output)    
                     # backpropagate
                     for layer in reversed(self.layers):
                         if layer.type == "softmax":
@@ -113,6 +109,10 @@ class Model():
         for layer in self.layers:
             if layer.type == "FC":
                 prediction = prediction.reshape(1,-1)
+            elif layer.type == "conv1D" and len(prediction.shape) == 3:
+                prediction = prediction.reshape(prediction.shape[0], -1)
+            elif layer.type == "conv2D" and len(prediction.shape) == 2:
+                prediction = np.reshape(prediction, (prediction.shape[0], math.ceil(math.sqrt(prediction.shape[1])),-1))
             prediction = layer.forward(prediction)
         return prediction
     

@@ -16,18 +16,18 @@
     "layers": [{
         "type": "conv1D",
         "number_kernels": 2,
-        "kernel_shape": 3 ,
-        "strides": 1,
+        "kernel_shape": 6 ,
+        "strides": 2,
         "modes": "valid",
         "activation": "selu",
         "weights_start": [-0.1, 0.1]
     },
     {
-        "type": "conv1D",
+        "type": "conv2D",
         "number_kernels": 4,
-        "kernel_shape": 3,
-        "strides": 1,
-        "modes": "valid",
+        "kernel_shape": [3,3],
+        "strides": [3,3],
+        "modes": ["valid", "valid"],
         "activation": "selu",
         "weights_start": [-0.1, 0.1]
     },

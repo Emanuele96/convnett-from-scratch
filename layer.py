@@ -338,19 +338,8 @@ class conv1D():
         self.cached_output = None
         self.debug = debug
 
-        
-        
-        '''print("###########################")
-        a = np.random.randint(1,4,(6,6))
-        print(a)
-        padded_a = self.apply_zero_padding(a)
-        print(padded_a)
-        print("kernel shape", (self.kernel_shape[2], self.kernel_shape[3]))
-        print("input shape", a.shape)
-        print("padded shape", padded_a.shape)
-        print("###########################")'''
-
     def cache_weights_input_output_triplet_locations(self):
+        print("inputtttttttt", self.input_shape)
         #Performe an empty convolution and cache all the position of the kernel, input and output triplet
         placeholder_input = np.zeros(self.input_shape)
         array = placeholder_input[0]
