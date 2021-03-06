@@ -1,4 +1,5 @@
 {
+    "verbose":false,
     "debug": false, 
     "n_size": 12,
     "categories": 4,
@@ -10,7 +11,7 @@
     "center_image_prob": 0.1,
     "noise_percent": 0,
     "soft_start": false,
-    "show_pictures_on_start": false,
+    "show_pictures_on_start": true,
     "animation_speed": 500,
     "train_on_start": true,
     "layers": [{

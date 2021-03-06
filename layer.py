@@ -339,7 +339,6 @@ class conv1D():
         self.debug = debug
 
     def cache_weights_input_output_triplet_locations(self):
-        print("inputtttttttt", self.input_shape)
         #Performe an empty convolution and cache all the position of the kernel, input and output triplet
         placeholder_input = np.zeros(self.input_shape)
         array = placeholder_input[0]

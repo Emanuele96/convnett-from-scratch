@@ -17,6 +17,7 @@ class Model():
         self.loss_fun = loss.get_loss_function(cfg["loss_fun"])
         self.loss_derivative = loss.get_loss_derivative(cfg["loss_fun"])
         self.input_shape = input_shape
+        self.verbose = cfg["verbose"]
         
     def add_layer(self, layer, input_shape, input_nodes, debug):
 
@@ -81,7 +82,19 @@ class Model():
                         network_output = layer.forward(network_output)
                     # Calculate the loss
                     loss = self.loss_fun(self,y_train[sample_nr], network_output)
+
                     batch_loss = batch_loss + loss
+                    if self.verbose:
+                        print("##########")
+                        print("Network input\n")
+                        print(x_train[sample_nr])
+                        print("Network output\n")
+                        print(network_output)
+                        print("Label\n")
+                        print(y_train[sample_nr])
+                        print("Loss\n")
+                        print(loss)
+                        print("###########")
                     # BACKWARD PASS : Get the loss and backpropagate throught the network
                     jacobian_L_Z = self.loss_derivative(self,y_train[sample_nr],  network_output)
 
@@ -134,18 +147,31 @@ class Model():
         return loss/samples
 
     def visualize_kernels(self):
+        layer_number = 1
         for layer in self.layers:
-            if layer.type != "conv2D":
+            if layer.type == "FC" or layer.type == "softmax" :
                 continue
-            print("#### Visualizing kernels Conv2D layer #####")
-            for i in range(layer.weights.shape[0]):
-                print("### Kernel stack nr. ", i, " ###")
-                for j in range(layer.weights.shape[1]):
-                    print("## Kernel nr. ", j, " ##")
-                    print(layer.weights[i][j])
-                    self.hinton(layer.weights[i][j])
+            print("Layer ", layer_number )
+            if layer.type == "conv1D":
+                print("#### Visualizing kernels Conv1D layer #####")
+                for i in range(layer.weights.shape[0]):
+                    print("### Kernel stack nr. ", i+1, " ###")
+                    self.hinton(layer.weights[i].T)
+                    print(layer.weights[i])
+                    plt.title("Layer " + str(layer_number) + " - Whole Kernel stack nr. " + str(i+1) )
                     plt.show()
-            print("######################")
+            else: 
+                print("#### Visualizing kernels Conv2D layer #####")
+                for i in range(layer.weights.shape[0]):
+                    print("### Kernel stack nr. ", i+1, " ###")
+                    for j in range(layer.weights.shape[1]):
+                        print("## channel ", j+1, " ##")
+                        print(layer.weights[i][j])
+                        self.hinton(layer.weights[i][j])
+                        plt.title("Layer " + str(layer_number) + " - Kernel stack nr. " + str(i+1) + " Channel " + str(j+1) )
+                        plt.show()
+                print("######################")
+            layer_number +=1
 
     
     def hinton(self, matrix, max_weight=None, ax=None):
