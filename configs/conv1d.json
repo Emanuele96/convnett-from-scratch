@@ -17,7 +17,7 @@
     "layers": [{
         "type": "conv1D",
         "number_kernels": 2,
-        "kernel_shape": 3 ,
+        "kernel_shape": 9 ,
         "strides": 1,
         "modes": "valid",
         "activation": "selu",
@@ -26,7 +26,7 @@
     {
         "type": "conv1D",
         "number_kernels": 4,
-        "kernel_shape": 3,
+        "kernel_shape": 9,
         "strides": 1,
         "modes": "valid",
         "activation": "selu",
@@ -42,7 +42,7 @@
     "use_softmax": true,
     "lr": 0.055,
     "loss_fun": "cross_entropy",
-    "batch_size": 6,
+    "batch_size": 32,
     "epochs": 50,
     "visualize_kernels": true
 }

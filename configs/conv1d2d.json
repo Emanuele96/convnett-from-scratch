@@ -16,7 +16,7 @@
     "train_on_start": true,
     "layers": [{
         "type": "conv1D",
-        "number_kernels": 2,
+        "number_kernels": 4,
         "kernel_shape": 6 ,
         "strides": 2,
         "modes": "valid",
@@ -25,7 +25,7 @@
     },
     {
         "type": "conv2D",
-        "number_kernels": 4,
+        "number_kernels": 8,
         "kernel_shape": [3,3],
         "strides": [3,3],
         "modes": ["valid", "valid"],
